@@ -26,8 +26,8 @@ To begin our analysis, we executed the Rhadamanthys sample in the Triage Sandbox
 
 The sandbox analysis revealed memory dumps, identifying the execution as the second stage of shellcode ,and rhadamanthys attempts to determine the geographical location of the host by inspecting the system language settings.
 
-<p style="text-align: center;">
-  <img src="Images/00_triage_sandbox.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/00_triage_sandbox.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Triage Sandbox</ins>
 </p>
@@ -46,26 +46,24 @@ The **Q3VM** packer was identified as the obfuscation mechanism used in this sta
 
 This observation confirms the use of Q3VM as the packing mechanism for Rhadamanthys.
 
-
-<p style="text-align: center;">
-  <img src="Images/22_decoder.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/22_decoder.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Identical Q3VM Protector</ins>
 </p>
 
 During the analysis, a significant blob of encoded data was located within the <ins>.rdata</ins> section starting at offset 0x1246, with a size of `107,030` bytes. This strongly confirms shellcode location.
 
-
 <p align="center">
   <img src="Images/01_encoded_shellcode.png" alt="Decrypted Configs" width="1000"/>
   <br/>
-  <strong>Decrypted Configs</strong>
+  <ins>Blob(1) : Encoded Shellcode located in rdata section</ins>
 </p>
 
 It is also noteworthy that this stage does not implement any anti-debugging techniques, which simplifies the analysis process. Using an x64 debugger, we observed a straightforward unpacking process. Initially, the unpacker allocates memory for the encoded shellcode, decodes it, and then transfers execution to the decoded shellcode.
 
-<p style="text-align: center;">
-  <img src="Images/01_tailjmp_1.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/01_tailjmp_1.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Shellcode After Decoded in Memory</ins>
 </p>
@@ -82,8 +80,8 @@ Additionally, the initial stage passes seven parameters to this shellcode. Using
 
 - **VirtualAlloc()** & **VirtualFree()** & **LocalAlloc()** & **LocalFree()**
 
-<p style="text-align: center;">
-  <img src="Images/02_entrypoint.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/02_entrypoint.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Shellcode Entry Point</ins>
 </p>
@@ -95,14 +93,15 @@ Additionally, the initial stage passes seven parameters to this shellcode. Using
 - Decompress third stage of compressed LZSS algorithm. 
 - Transfers execution to the third stage, passing along two arguments.
 
-<p style="text-align: center;">
-  <img src="Images/23_middle.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/23_middle.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Second Stage Functionality</ins>
 </p>
 
-<p style="text-align: center;">
-  <img src="Images/23_midle_2.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/23_midle_2.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Jump to next stage</ins>
 </p>
@@ -128,8 +127,8 @@ At first malware must obtain `kernel32.dll` that includes a collection of essent
 
 Rhadamanthys implements a PEB Walk to locate kernel32.dll. This involves traversing the PEB_LDR_DATA structure to access _LDR_DATA_TABLE_ENTRY, which provides a list of loaded modules. 
 
-<p style="text-align: center;">
-  <img src="Images/31_pebwalkview.jpg" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/31_pebwalkview.jpg" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>PEB Walk</ins>
 </p>
@@ -138,8 +137,9 @@ However, the implementation disrupts standard disassembly views in tools like ID
 - The decompiler misinterprets the InMemoryOrderModuleList offsets because the malware uses the CONTAINING_RECORD macro to directly access structure members.
 - As a result, IDA incorrectly resolves offsets, requiring a manual fix through shifted pointers.
 
-<p style="text-align: center;">
-  <img src="Images/32_ida_before.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/32_ida_before.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>PEB Walk Corruption in IDA Pro</ins>
 </p>
@@ -149,16 +149,17 @@ By adjusting pointer offsets, it is possible to correct these issues and accurat
 The problem **-in a nutshell-** I think that author used the macro **CONTAINING_RECORD** to be able to directly access the list_entry members to avoid calculation of each member address from the address of list_entry so it's Distracted IDA decompiler so when it access **_LDR_DATA_TABLE_ENTRY** find **LIST_ENTRY InMemoryOrderLinks** so it uses same method that points to it with Flink to nothing rather then pointing to **DllBase** 
 
 
-<p style="text-align: center;">
-  <img src="Images/31_peb_corrupt.jpg" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/31_peb_corrupt.jpg" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>How Hex-Rays decompiler has beed distracted</ins>
 </p>
 
 We can use IDA Shifted Pointers to fix this ,and we need to shift by 8 bytes to point to DllBase
 
-<p style="text-align: center;">
-  <img src="Images/33_obtainkernel32(1).png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/33_obtainkernel32(1).png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>PEB walk to obtain kernel32.dll image-base</ins>
 </p>
@@ -170,8 +171,8 @@ After locating kernel32.dll, the malware parses its PE structure to access the E
 
 Rhadamanthys ensuring the base address contains a valid PE header by referencing the e_lfanew pointer and verifying the magic bytes, Then retrieves Virtual Address stored in the IMAGE_DATA_DIRECTORY to locate the Export Table at offset zero.
 
-<p style="text-align: center;">
-  <img src="Images/33_exports.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/33_exports.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Obtain kernel32.dll Export Table</ins>
 </p>
@@ -181,24 +182,27 @@ The Export Table includes three arrays:
 - AddressOfFunctions: Contains the addresses of all exported functions.             
 - AddressOfNameOrdinals: Used for alignment of function names with their addresses.       
 
-<p style="text-align: center;">
-  <img src="Images/33_exports_structs.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/33_exports_structs.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Export Table Structure</ins>
 </p>
 
 Rhadamanthys iterates over the AddressOfNames array, applying the **ror13_add** hashing algorithm to each export name. It then compares the resulting hash to precomputed values for LoadLibraryA and GetProcAddress.
 
-<p style="text-align: center;">
-  <img src="Images/33_pharse_exports_names.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/33_pharse_exports_names.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Grap & hash Names of Dll Exports</ins>
 </p>
 
 The last thing do comparizon of each hash to check LoadLibraryA and GetProcAddress hashes.
 
-<p style="text-align: center;">
-  <img src="Images/33_pharse_loaders.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/33_pharse_loaders.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Check LoadLibraryA and GetProcAddress</ins>
 </p>
@@ -230,24 +234,26 @@ Initially, Rhadamanthys resolves the address of `ZwQueryInformationProcess` to h
 
 Rhadamanthys ensures that only specific calls to `ZwQueryInformationProcess` (made via exception handling) are intercepted. The malware achieves this by iterating over the KiUserExceptionDispatcher code to locate the exact point where the call to ZwQueryInformationProcess occurs.
 
-<p style="text-align: center;">
-  <img src="Images/55_ex_hndl.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/55_ex_hndl.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Search for the Call to "ZwQueryInformationProcess"</ins>
 </p>
 
 Once the call to `ZwQueryInformationProcess` is located, Rhadamanthys sets a hook by overwriting the function call with a jump to its custom function. This allows the malware to control how the process information is handled.
 
-<p style="text-align: center;">
-  <img src="Images/55_patchfunc.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/55_patchfunc.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Patch KiUserExceptionDispatcher to Redirect the Call</ins>
 </p>
 
 Rhadamanthys redirects the call to its custom function, where it modifies the ProcessInformation flag to <ins>0x6D</ins> which corresponds to `MEM_EXECUTE_OPTION_IMAGE_DISPATCH_ENABLE`. This flag enables exception handling to be performed on the shellcode, allowing it to execute without detection.
 
-<p style="text-align: center;">
-  <img src="Images/55_ex_dis.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/55_ex_dis.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Patched KiUserExceptionDispatcher</ins>
 </p>
@@ -260,8 +266,9 @@ After successfully managing exceptions triggered by the malware and inserting a 
 
 These settings allow the malware to handle errors silently and avoid raising suspicion.
 
-<p style="text-align: center;">
-  <img src="Images/55_fuin.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/55_fuin.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Suppressing Error Messages to Avoid Detection</ins>
 </p>
@@ -272,32 +279,35 @@ Rhadamanthys stores its encrypted configuration in the <ins>.data</ins> section,
 
 By analyzing the malware’s execution, it was determined that the configuration pointer is passed as an argument from the first shellcode to the second-stage shellcode. Further investigation revealed that the configuration is stored in an initial structure, which is allocated in the heap during the malware's initialization phase.
 
-<p style="text-align: center;">
-  <img src="Images/34_initalstruct.png3.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/34_initalstruct.png3.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Initial Struct Containing Configuration</ins>
 </p>
 
 Rhadamanthys’ decryption key is stored in the third stage. Unlike the encrypted configuration, which resides in the .data section, the key is dynamically allocated and utilized only during the decryption phase.
 
-<p style="text-align: center;">
-  <img src="Images/34_configs.jpg" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/34_configs.jpg" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Config and Key Locations Overview</ins>
 </p>
 
 Rhadamanthys uses RC4 encryption for its configuration data .The decryption is implemented over two functions in a straightforward manner as documented in [RC4](https://en.wikipedia.org/wiki/RC4) , `mb_rc4_KSA` responsible for initializing the RC4 key scheduling algorithm (KSA) with the key and key length. Second one `rc4_crypto` implements the main RC4 decryption algorithm, which performs an XOR operation between the encrypted configuration and the keystream. After decryption, Rhadamanthys check magic bytes of decrypted configs `!RHY` and set secceed status.  
 
-<p style="text-align: center;">
-  <img src="Images/34_configs_overview.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/34_configs_overview.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Decryption Process of Rhadamanthys Configuration</ins>
 </p>
 
 We can bypass this process and retrieve decrypted configs directly using an x64 debugger.
 
-<p style="text-align: center;">
-  <img src="Images/55_configs.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/55_configs.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Decrypted Conigs</ins>
 </p>
@@ -315,13 +325,11 @@ I developed a python code you will find [Here](https://github.com/Yahyaalsayed/M
 - Decrypt Configs
 - Produce Clean C2 Address 
  
-
-<p style="text-align: center;">
-  <img src="Images/66.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/66.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Output of the code after extracting the Configs</ins>
 </p>
-
 You can disassemble extracted shellcode using Capstone Framework in CS_ARCH_X86 arhcitecture and CS_MODE_32 but it doesn't included in this version of extractor. 
 
 ## C2 Communication
@@ -330,32 +338,33 @@ Rhadamanthys loader establishes communication with C2 server to download and exe
 
 Rhadamanthys resolves domain name into IP address by `getaddrinfo` to be `116.202.18.132`
 
-<p style="text-align: center;">
-  <img src="Images/44_c_addrinfo.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/44_c_addrinfo.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Rhadamanthys resolves domain name</ins>
 </p>
 
 Rhadamanthys loader communicates using `WSASend` & `WSARecv`.
 
-<p style="text-align: center;">
-  <img src="Images/44_c_wssend.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/44_c_wssend.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Communicate using WSASend</ins>
 </p>
 
 Once the loader has sent the HTTP request to download the main module, the command-and-control server replies with the stealer.
 
-<p style="text-align: center;">
-  <img src="Images/44_c_wsrcv.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/44_c_wsrcv.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Communicate using WSARecv</ins>
 </p>
 
 Rhadamanthys loader controls socket mode using `WSAIoctl` using Obscure IOCTL code `0xC8000006` which is defined as **<ins>SIO_GET_EXTENSION_FUNCTION_POINTER</ins>** as used in same purpose in **<ins>Royal ransomware</ins>** 
 
-<p style="text-align: center;">
-  <img src="Images/44_c_wsrcv.png" alt="Sample Image" style="max-width: 100%;"/>
+</p>
+<p align="center">
+  <img src="Images/44_c_wsrcv.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>WSAIoctl</ins>
 </p>
@@ -363,19 +372,20 @@ Rhadamanthys loader controls socket mode using `WSAIoctl` using Obscure IOCTL co
 ### How Loader Execute Final Stage 
 
 Rhadamanthys Loader receive data from C2 and create file with name `nsis_[uns%04x].dll` then write PE format, and set `rundll32.exe` and dll export `PrintUIEntry` to execute is using `CreateProcessW()`
- <p style="text-align: center;">
-  <img src="Images/44_c_dowload.png" alt="Sample Image" style="max-width: 100%;"/>
+
+<p align="center">
+  <img src="Images/44_c_dowload.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <ins>Download & Execute Rhadamanthys Stealer</ins>
 </p>
-
-
 
 # Conclusion
 
 Rhadamanthys Infostealer, a Malware-as-a-Service (MaaS), represents a significant threat due to its unique multi-layered design, advanced capabilities, and evasion techniques.
 - The initial stage of Rhadamanthys is obfuscated by the Q3VM open-source packer, securing its encoded payload, which is encoded with a Base32 algorithm using a custom character set.
+
 - The middle stage resolves some virtual APIs and decompresses the loader stage, which is compressed using the LZSS algorithm. While this was defeated using a debugger, an automated extractor can now be used.
+
 - The loader stage employs various anti-analysis techniques, including API hashing, custom exception handling with API redirection, and other anti-analysis tricks. The loader decrypts RC4-encrypted configs, connects to the C2 server, and downloads and executes the actual stealer.
 
 # IoCs
@@ -392,13 +402,13 @@ rule rhadamanthys
 {
     meta:
 		  author = "Yahya Alsify"
-      		  description = "Detects Rhadamanthya loader"
-		  hash = "dca16a0e7bdc4968f1988c2d38db133a0e742edf702c923b4f4a3c2f3bdaacf5"
+      description = "Detects Rhadamanthya loader"
+      hash = "dca16a0e7bdc4968f1988c2d38db133a0e742edf702c923b4f4a3c2f3bdaacf5"
 		  hash = "9917b5f66784e134129291999ae0d33dcd80930a0a70a4fbada1a3b70a53ba91"
 		  hash = "3300206b9867c6d9515ad09191e7bf793ad1b42d688b2dbd73ce8d900477392e"
     strings:
 		  $mz = {4D 5A} //PE File
-	          $shellcode = "7ARQAAAAS"
+      $shellcode = "7ARQAAAAS"
 		  $s1 = "GetQueuedCompletionStatus"
 		  $s2 = "CreateCompatibleBitmap"
 		  $s3 = "DispatchMessage"
@@ -414,11 +424,18 @@ rule rhadamanthys
 
 # References
 
-https://www.recordedfuture.com/research/rhadamanthys-stealer-adds-innovative-ai-feature-version           
-https://www.zscaler.com/blogs/security-research/technical-analysis-rhadamanthys-obfuscation-techniques           
-http://undocumented.ntinternals.net/index.html?page=UserMode%2FStructures%2FPEB_LDR_DATA.html        
+https://www.recordedfuture.com/research/rhadamanthys-stealer-adds-innovative-ai-feature-version      
+
+https://www.zscaler.com/blogs/security-research/technical-analysis-rhadamanthys-obfuscation-techniques   
+
+http://undocumented.ntinternals.net/index.html?page=UserMode%2FStructures%2FPEB_LDR_DATA.html       
+
 https://gurucul.com/blog/royal-ransomware/       
+
 https://github.com/corngood/mono/blob/master/mono/io-layer/sockets.h       
-https://outpost24.com/blog/rhadamanthys-malware-analysis/#disassembling-standard-and-rhadamanthys-quake-vm-binaries       
-https://github.com/ayoubfaouzi/al-khaser       
+
+https://outpost24.com/blog/rhadamanthys-malware-analysis/#disassembling-standard-and-rhadamanthys-quake-vm-binaries    
+
+https://github.com/ayoubfaouzi/al-khaser     
+
 https://github.com/jnz/q3vm
