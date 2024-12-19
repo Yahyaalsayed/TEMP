@@ -375,12 +375,9 @@ Rhadamanthys Loader receive data from C2 and create file with name `nsis_[uns%04
 # Conclusion
 
 Rhadamanthys Infostealer, a Malware-as-a-Service (MaaS), represents a significant threat due to its unique multi-layered design, advanced capabilities, and evasion techniques.
-
-The initial stage of Rhadamanthys is obfuscated by the Q3VM open-source packer, securing its encoded payload, which is encoded with a Base32 algorithm using a custom character set.
-
-The middle stage resolves some virtual APIs and decompresses the loader stage, which is compressed using the LZSS algorithm. While this was defeated using a debugger, an automated extractor can now be used.
-
-The loader stage employs various anti-analysis techniques, including API hashing, custom exception handling with API redirection, and other anti-analysis tricks. The loader decrypts RC4-encrypted configs, connects to the C2 server, and downloads and executes the actual stealer.
+- The initial stage of Rhadamanthys is obfuscated by the Q3VM open-source packer, securing its encoded payload, which is encoded with a Base32 algorithm using a custom character set.
+- The middle stage resolves some virtual APIs and decompresses the loader stage, which is compressed using the LZSS algorithm. While this was defeated using a debugger, an automated extractor can now be used.
+- The loader stage employs various anti-analysis techniques, including API hashing, custom exception handling with API redirection, and other anti-analysis tricks. The loader decrypts RC4-encrypted configs, connects to the C2 server, and downloads and executes the actual stealer.
 
 # IoCs
 |No.|Description|Value|    
