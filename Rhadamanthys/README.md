@@ -402,7 +402,7 @@ rule rhadamanthys
 		  hash = "3300206b9867c6d9515ad09191e7bf793ad1b42d688b2dbd73ce8d900477392e"
     strings:
 		  $mz = {4D 5A} //PE File
-      $shellcode = "7ARQAAAAS"
+	          $shellcode = "7ARQAAAAS"
 		  $s1 = "GetQueuedCompletionStatus"
 		  $s2 = "CreateCompatibleBitmap"
 		  $s3 = "DispatchMessage"
