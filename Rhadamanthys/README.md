@@ -57,7 +57,7 @@ During the analysis, a significant blob of encoded data was located within the <
 
 
 <p align="center">
-  <img src="Images/01_encoded_shellcode.png" alt="Decrypted Configs" width="400"/>
+  <img src="Images/01_encoded_shellcode.png" alt="Decrypted Configs" width="1000"/>
   <br/>
   <strong>Decrypted Configs</strong>
 </p>
