@@ -56,12 +56,11 @@ This observation confirms the use of Q3VM as the packing mechanism for Rhadamant
 During the analysis, a significant blob of encoded data was located within the <ins>.rdata</ins> section starting at offset 0x1246, with a size of `107,030` bytes. This strongly confirms shellcode location.
 
 
-<p style="text-align: center;">
-  <img src="Images/01_encoded_shellcode.png" alt="Sample Image" style="max-width: 100%;"/>
+<p align="center">
+  <img src="Images/01_encoded_shellcode.png" alt="Decrypted Configs" width="400"/>
   <br/>
-  <ins>Blob(1) : Encoded Shellcode located in rdata section</ins>
+  <strong>Decrypted Configs</strong>
 </p>
-
 
 It is also noteworthy that this stage does not implement any anti-debugging techniques, which simplifies the analysis process. Using an x64 debugger, we observed a straightforward unpacking process. Initially, the unpacker allocates memory for the encoded shellcode, decodes it, and then transfers execution to the decoded shellcode.
 
