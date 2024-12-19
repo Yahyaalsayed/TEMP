@@ -396,8 +396,8 @@ rule rhadamanthys
 {
     meta:
 		  author = "Yahya Alsify"
-      description = "Detects Rhadamanthya loader"
-      hash = "dca16a0e7bdc4968f1988c2d38db133a0e742edf702c923b4f4a3c2f3bdaacf5"
+      		  description = "Detects Rhadamanthya loader"
+		  hash = "dca16a0e7bdc4968f1988c2d38db133a0e742edf702c923b4f4a3c2f3bdaacf5"
 		  hash = "9917b5f66784e134129291999ae0d33dcd80930a0a70a4fbada1a3b70a53ba91"
 		  hash = "3300206b9867c6d9515ad09191e7bf793ad1b42d688b2dbd73ce8d900477392e"
     strings:
